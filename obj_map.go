@@ -158,12 +158,21 @@ func (om ObjMap[T]) MarshalYAML() (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	return transcode.YAMLFromJSON(j)
+	var v interface{}
+	err = json.Unmarshal(j, &v)
+	if err != nil {
+		return nil, err
+	}
+	return v, nil
 }
 
 // UnmarshalYAML satisfies gopkg.in/yaml.v3 Unmarshaler interface
 func (om *ObjMap[T]) UnmarshalYAML(value *yaml.Node) error {
-	j, err := transcode.YAMLFromJSON([]byte(value.Value))
+	v, err := yaml.Marshal(value)
+	if err != nil {
+		return err
+	}
+	j, err := transcode.JSONFromYAML(v)
 	if err != nil {
 		return err
 	}

@@ -5,13 +5,14 @@ import (
 	"encoding/json"
 	"strings"
 
+	"github.com/chanced/caps/text"
 	"github.com/chanced/transcode"
 	"github.com/tidwall/gjson"
 	"gopkg.in/yaml.v3"
 )
 
 type PathItemEntry struct {
-	Key      string
+	Key      text.Text
 	PathItem *PathItem
 }
 
@@ -123,12 +124,21 @@ func (p Paths) MarshalYAML() (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	return transcode.YAMLFromJSON(j)
+	var v interface{}
+	err = json.Unmarshal(j, &v)
+	if err != nil {
+		return nil, err
+	}
+	return v, nil
 }
 
 // UnmarshalYAML satisfies gopkg.in/yaml.v3 Unmarshaler interface
 func (p *Paths) UnmarshalYAML(value *yaml.Node) error {
-	j, err := transcode.YAMLFromJSON([]byte(value.Value))
+	v, err := yaml.Marshal(value)
+	if err != nil {
+		return err
+	}
+	j, err := transcode.JSONFromYAML(v)
 	if err != nil {
 		return err
 	}
